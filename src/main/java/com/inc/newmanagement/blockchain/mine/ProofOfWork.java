@@ -7,6 +7,10 @@ import java.util.stream.IntStream;
 
 public class ProofOfWork {
 
+    private ProofOfWork() {
+        throw new IllegalStateException("utility class");
+    }
+
     public static String mineBlock(Block block, int difficulty) throws NoSuchAlgorithmException {
         final String prefixLength = IntStream.range(0, difficulty)
                 .mapToObj(i -> '0')
