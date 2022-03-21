@@ -6,30 +6,32 @@ import com.inc.newmanagement.blockchain.util.KeyProvider;
 import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.util.Objects;
 
 public class TransactionOutput {
 
-    private final PublicKey recipientPublicKey;
+    private final PublicKey recipient;
     private final BigDecimal value;
     private final String parentTransactionId;
     private final String id;
 
-    public TransactionOutput(PublicKey recipientPublicKey, BigDecimal value, String parentTransactionId) throws
+    public TransactionOutput(PublicKey recipient, BigDecimal value, String parentTransactionId) throws
             NoSuchAlgorithmException {
-        this.recipientPublicKey = recipientPublicKey;
+        this.recipient = recipient;
         this.value = value;
         this.parentTransactionId = parentTransactionId;
-        this.id = Hash.sha256Hex(KeyProvider.getBase64Encoding(recipientPublicKey) +
-                value + parentTransactionId);
+        this.id = Hash.sha256Hex(KeyProvider.getBase64Encoding(recipient) + value + parentTransactionId);
     }
 
     public boolean isMine(PublicKey publicKey) {
-        return publicKey == recipientPublicKey;
+        return (publicKey == recipient);
     }
 
-    public PublicKey getRecipientPublicKey() {
-        return recipientPublicKey;
+    public String getId() {
+        return id;
+    }
+
+    public PublicKey getRecipient() {
+        return recipient;
     }
 
     public BigDecimal getValue() {
@@ -40,30 +42,15 @@ public class TransactionOutput {
         return parentTransactionId;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TransactionOutput that = (TransactionOutput) o;
-        return id.equals(that.id) && recipientPublicKey.equals(that.recipientPublicKey) && value.equals(that.value) && parentTransactionId.equals(that.parentTransactionId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, recipientPublicKey, value, parentTransactionId);
-    }
+    // hashcode and equals
 
     @Override
     public String toString() {
         return "TransactionOutput{" +
-                "id='" + id + '\'' +
-                ", recipientPublicKey=" + recipientPublicKey +
+                "recipient=" + recipient +
                 ", value=" + value +
                 ", parentTransactionId='" + parentTransactionId + '\'' +
+                ", id='" + id + '\'' +
                 '}';
     }
 

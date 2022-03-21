@@ -1,68 +1,88 @@
 package com.inc.newmanagement.blockchain.entity;
 
+import com.inc.newmanagement.blockchain.transaction.Transaction;
 import com.inc.newmanagement.blockchain.util.Hash;
+import com.inc.newmanagement.blockchain.util.Util;
 
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
-import java.time.Instant;
+import java.security.SignatureException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 public class Block {
 
-    private final String data;
+    private String hash;
+    private String merkleRoot;
+    private int nonce;
+
     private final String previousHash;
+    private final List<Transaction> transactions;
     private final long timeStamp;
-    private final int nonce;
-    private final String hash;
 
-    public Block(String data, String previousHash) throws NoSuchAlgorithmException, NoSuchProviderException {
-        this.data = data;
+    public Block(String previousHash) throws NoSuchAlgorithmException {
         this.previousHash = previousHash;
-        this.timeStamp = Instant.now().toEpochMilli();
-        this.nonce = generateNonce();
+        this.transactions = new ArrayList<>();
+        this.timeStamp = new Date().getTime();
         this.hash = calculateHash();
-    }
-
-    public Block(Block block, int nonce) throws NoSuchAlgorithmException {
-        this.data = block.getData();
-        this.previousHash = block.getPreviousHash();
-        this.timeStamp = block.getTimeStamp();
-        this.nonce = nonce;
-        this.hash = calculateHash();
-    }
-
-    public Block(Block block) {
-        this.data = block.getData();
-        this.previousHash = block.getPreviousHash();
-        this.timeStamp = block.getTimeStamp();
-        this.nonce = block.getNonce();
-        this.hash = block.getHash();
     }
 
     public String calculateHash() throws NoSuchAlgorithmException {
-        return Hash.sha256Hex(this.previousHash + this.timeStamp +
-                nonce + this.data);
+        return Hash.sha256Hex(previousHash + timeStamp + nonce + merkleRoot);
     }
 
-    public String getData() {
-        return data;
+    public void mineBlock(int difficulty) throws NoSuchAlgorithmException {
+        merkleRoot = Util.getMerkleRoot(transactions);
+        String target = Util.getDifficultyString(difficulty);
+        while (!hash.substring(0, difficulty).equals(target)) {
+            nonce++;
+            hash = calculateHash();
+        }
+        System.out.println("Block Mined!!! : " + hash);
+    }
+
+    public void addTransaction(Transaction transaction) throws NoSuchAlgorithmException,
+            SignatureException, NoSuchProviderException, InvalidKeyException {
+
+        if (transaction == null) {
+            return;
+        }
+        if ((!"0".equals(previousHash))) {
+            if ((!transaction.processTransaction())) {
+                System.out.println("Transaction failed to process. Discarded.");
+                return;
+            }
+        }
+        transactions.add(transaction);
+        System.out.println("Transaction Successfully added to Block");
+    }
+
+    public String getHash() {
+        return hash;
     }
 
     public String getPreviousHash() {
         return previousHash;
     }
 
+    public List<Transaction> getTransactions() {
+        return List.copyOf(transactions);
+    }
+
     public long getTimeStamp() {
         return timeStamp;
     }
 
-    public int getNonce() {
-        return nonce;
+    public String getMerkleRoot() {
+        return merkleRoot;
     }
 
-    public String getHash() {
-        return hash;
+    public int getNonce() {
+        return nonce;
     }
 
     @Override
@@ -70,23 +90,27 @@ public class Block {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Block block = (Block) o;
-        return timeStamp == block.timeStamp &&
+        return nonce == block.nonce &&
+                timeStamp == block.timeStamp &&
                 hash.equals(block.hash) &&
-                previousHash.equals(block.previousHash) &&
-                data.equals(block.data);
+                Objects.equals(merkleRoot, block.merkleRoot) &&
+                Objects.equals(previousHash, block.previousHash) &&
+                Objects.equals(transactions, block.transactions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(hash, previousHash, data, timeStamp);
+        return Objects.hash(hash, merkleRoot, nonce, previousHash, transactions, timeStamp);
     }
 
     @Override
     public String toString() {
         return "Block{" +
                 "hash='" + hash + '\'' +
+                ", merkleRoot='" + merkleRoot + '\'' +
+                ", nonce=" + nonce +
                 ", previousHash='" + previousHash + '\'' +
-                ", data='" + data + '\'' +
+                ", transactions=" + transactions +
                 ", timeStamp=" + timeStamp +
                 '}';
     }

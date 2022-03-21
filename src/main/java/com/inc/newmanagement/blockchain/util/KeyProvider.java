@@ -1,17 +1,12 @@
 package com.inc.newmanagement.blockchain.util;
 
 import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.SecureRandom;
-import java.security.Signature;
-import java.security.SignatureException;
 import java.security.spec.ECGenParameterSpec;
 import java.util.Base64;
 
@@ -36,24 +31,6 @@ public class KeyProvider {
         keyPairGenerator.initialize(2048);
 
         return keyPairGenerator.generateKeyPair();
-    }
-
-    public static byte[] applyECDSASignature(PrivateKey privateKey, String data) throws
-            NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException {
-        final Signature ecdsaSignature = Signature.getInstance("ECDSA", "BC");
-        ecdsaSignature.initSign(privateKey);
-        ecdsaSignature.update(data.getBytes());
-
-        return ecdsaSignature.sign();
-    }
-
-    public static boolean verifyECDSASignature(PublicKey publicKey, String data, byte[] signature) throws
-            NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException {
-        final Signature ecdsaVerify = Signature.getInstance("ECDSA", "BC");
-        ecdsaVerify.initVerify(publicKey);
-        ecdsaVerify.update(data.getBytes());
-
-        return ecdsaVerify.verify(signature);
     }
 
     public static String getBase64Encoding(Key key) {
